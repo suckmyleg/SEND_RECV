@@ -179,6 +179,10 @@ class connection:
 				else:
 					self.log_styled(style(args, b))
 
+
+	#SEND TOOLS
+	#SEND TOOLS
+	#SEND TOOLS
 	#SEND TOOLS
 
 	def pr(self, a):
@@ -194,14 +198,14 @@ class connection:
 			self.recv_check(l)
 
 	def die(self):
-		self.send("die")
 		self.status = False
+		self.send("die")
 
 	def cls(self):
 		self.send("cls")
 
 	def inp(self, arg=None):
-		id = randint(0, 99999)
+		id = randint(0, 9999999)
 
 		self.send("inp", [arg, id])
 
@@ -211,21 +215,30 @@ class connection:
 			if data[1][1] == id:
 				return data[1][0]
 			else:
-				self.inp("Error, connection not secure-")
+				self.pr("Error, connection not secure-")
 				self.die()
 		except:
-			pass
+			self.pr("Error, connection not secure-")
+			self.die()
+
 
 	#RECV TOOLS
+	#RECV TOOLS
+	#RECV TOOLS
+	#RECV TOOLS
 
-	def recv_pr(self, args):
+	def recv_pr(self, args, auto_flush=True):
 		for a in args:
 			print(a, flush=False, end="")
-		print("")
+		if auto_flush:
+			print("")
 
 	def recv_inp(self, args):
-		self.recv_pr(args)
-		self.send("ANSWER", [input(), args[0]])
+		for a in args:
+			self.recv_pr(a, auto_flush=False)
+			break
+
+		self.send("ANSWER", [input(), args[1]])
 
 	def recv_connect(self, args=False):
 		if args:
@@ -257,6 +270,7 @@ class connection:
 
 	def recv_die(self, args):
 		self.status = False
+		input("Connection ended by host.\nPress enter to close.")
 
 	def recv_web(self, args):
 		for url in args:
@@ -267,6 +281,9 @@ class connection:
 		self.recv_connect(args)
 
 
+	#BASIC FUNCTIONS
+	#BASIC FUNCTIONS
+	#BASIC FUNCTIONS
 	#BASIC FUNCTIONS
 
 	def send(self, command, args=[]):
@@ -280,6 +297,7 @@ class connection:
 			self.conn.send(pickle.dumps(data))
 		except:
 			self.status = False
+			print(a)
 
 		return data
 
@@ -291,7 +309,7 @@ class connection:
 				if not self.start_connection(tries=15):
 					self.status = False
 		else:
-			self.log([["RECV", d[0]]])
+			self.log([["RECV", d]])
 
 			return d
 
@@ -341,6 +359,12 @@ class connection:
 		self.log("Starting")
 		
 		self.start_connection()
+
+
+
+
+
+
 
 
 
