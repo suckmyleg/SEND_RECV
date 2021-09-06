@@ -161,23 +161,23 @@ class connection:
 
 	def log_styled(self, a):
 		l = style(style("{}:{}".format(self.host, self.port), a), "{}s".format(self.get_duration()), l=90)
-		print(l)
+		if self.log_status:
+			print(l)
 		open("{}_log.txt".format(self.type), "a").write("{} \n".format(l))
 
 
 	def log(self, args, b=False):
-		if self.log_status:
-			if type(args) == list:
-				for a in args:
-					if type(a) == list and len(a) == 2:
-						self.log_styled(style(a[0], a[1]))
-					else:
-						self.log_styled(str(a))
-			else:
-				if not b:
-					self.log_styled(args)
+		if type(args) == list:
+			for a in args:
+				if type(a) == list and len(a) == 2:
+					self.log_styled(style(a[0], a[1]))
 				else:
-					self.log_styled(style(args, b))
+					self.log_styled(str(a))
+		else:
+			if not b:
+				self.log_styled(args)
+			else:
+				self.log_styled(style(args, b))
 
 
 	#SEND TOOLS
