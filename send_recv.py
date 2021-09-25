@@ -3,8 +3,14 @@ import threading
 import pickle
 import time
 from random import randint
-
 import os
+
+import cv2
+
+
+
+
+
 
 def style(i1, i2, l=30, d=" "):
 	return "{} {} {}".format(str(i1), (l-(len(str(i1)) + len(str(i2))))*d, str(i2))
@@ -140,9 +146,9 @@ class connection:
 
 
 		if not self.host:
-			self.manual_connection = True
+			self.connection_as_client = True
 		else:
-			self.manual_connection = False
+			self.connection_as_client = False
 
 		self.messages = messages
 
@@ -152,7 +158,7 @@ class connection:
 
 		self.type = "server"
 
-		if self.manual_connection:
+		if self.connection_as_client:
 			self.type = "client"
 
 	#LOG TOOLS
@@ -193,10 +199,12 @@ class connection:
 		self.send("web", url)
 
 	def check(self, l=100):
-		if self.manual_connection:
+		if self.connection_as_client:
 			self.send("check", l)
 		else:
+			self.log_off()
 			self.recv_check(l)
+			#self.log_on()
 
 	def die(self):
 		self.status = False
@@ -204,6 +212,12 @@ class connection:
 
 	def cls(self):
 		self.send("cls")
+
+	def log_on(self):
+		self.send("enable_log")
+
+	def log_off(self):
+		self.send("disable_log") 
 
 	def inp(self, arg=None):
 		id = randint(0, 9999999)
@@ -254,18 +268,24 @@ class connection:
 	def recv_cls(self, args):
 		os.system("CLS")
 
+	def recv_disable_log(self, args):
+		self.disable_log()
+
+	def recv_enable_log(self, args):
+		self.enable_log()
+
 	def recv_check(self, args):
-		self.log_status = False
+		self.disable_log()
 		for l in range(args):
 			d = "1"*(l*10)
 			s = self.send("back", d)
 			r = self.recv()
 
 			if not s[1] == s[1]:
-				self.log_status = True
+				self.enable_log()
 				self.log("Connection not secured")
 				return False
-		self.log_status = True
+		self.enable_log()
 		self.log("Connection secured")
 		return True
 
@@ -287,6 +307,14 @@ class connection:
 	#BASIC FUNCTIONS
 	#BASIC FUNCTIONS
 
+	def disable_log(self):
+		self.log("Log disabled")
+		self.log_status = False
+
+	def enable_log(self):
+		self.log_status = True
+		self.log("Log enabled")
+
 	def send(self, command, args=[]):
 		if not type(args) == list:
 			args = [args]
@@ -306,7 +334,7 @@ class connection:
 		try:
 			d = pickle.loads(self.conn.recv(1024))
 		except:
-			if self.manual_connection:
+			if self.connection_as_client:
 				if not self.start_connection(tries=15):
 					self.status = False
 		else:
@@ -330,7 +358,7 @@ class connection:
 					i += 1
 					self.log("Retrying {}".format(i))
 			else:
-				self.manual_connection = True
+				self.connection_as_client = True
 				return True
 
 	def start_connection(self, tries=10):

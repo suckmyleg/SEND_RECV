@@ -1,6 +1,6 @@
-import send_recv2
+import send_recv
 
-s = send_recv2.connection("192.168.1.92", 4545, log=True)
+s = send_recv.connection("192.168.1.92", 4545, log=False)
 
 s.start()
 
