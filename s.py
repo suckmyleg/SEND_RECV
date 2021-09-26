@@ -5,7 +5,6 @@ import time
 def mouth(f):
 	while f.status:
 		f.check()
-		time.sleep(5)
 		for i in range(10):
 			f.pr("Module {} connected.".format(i))
 		f.die()

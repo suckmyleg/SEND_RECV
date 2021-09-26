@@ -161,6 +161,9 @@ class connection:
 		if self.connection_as_client:
 			self.type = "client"
 
+		if conn:
+			self.auto_recv_messages()
+
 	#LOG TOOLS
 
 	def get_duration(self):
@@ -223,6 +226,23 @@ class connection:
 		id = randint(0, 9999999)
 
 		self.send("inp", [arg, id])
+
+		data = self.recv(id)
+
+		try:
+			if data[1][1] == id:
+				return data[1][0]
+			else:
+				self.pr("Error, connection not secure-")
+				self.die()
+		except:
+			self.pr("Error, connection not secure-")
+			self.die()
+
+	def call(self, arg=None):
+		id = randint(0, 9999999)
+
+		self.send("call", [arg, id])
 
 		data = self.recv()
 
@@ -326,21 +346,34 @@ class connection:
 			self.conn.send(pickle.dumps(data))
 		except:
 			self.status = False
-			print(a)
 
 		return data
 
-	def recv(self):
-		try:
-			d = pickle.loads(self.conn.recv(1024))
-		except:
-			if self.connection_as_client:
-				if not self.start_connection(tries=15):
-					self.status = False
-		else:
-			self.log([["RECV", d]])
+	def auto_recv(self):
+		while self.status:
+			try:
+				r = self.conn.recv(1024)
+				d = pickle.loads(r)
+			except:
+				if self.connection_as_client:
+					if not self.start_connection(tries=15):
+						self.status = False
+			else:
+				self.messages.append(d)
 
-			return d
+	def recv(self, id=False):
+		while self.status:
+			if len(self.messages) > 0:
+				if not id or self.messages[0][1][1] == id:
+					self.log([["RECV", self.messages[0]]])
+
+					m = self.messages[0]
+
+					del self.messages[0]
+
+					return m
+			else:
+				time.sleep(0.01)
 
 	def connect(self, tries=1):
 		self.log("Connecting")
@@ -359,7 +392,9 @@ class connection:
 					self.log("Retrying {}".format(i))
 			else:
 				self.connection_as_client = True
+				self.auto_recv_messages()
 				return True
+
 
 	def start_connection(self, tries=10):
 		self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -371,7 +406,8 @@ class connection:
 
 	def auto_recv_messages(self):
 		while True:
-			d = self.recv()
+			self.auto_recv_thread = threading.Thread(target=self.auto_recv)
+			self.auto_recv_thread.start()
 
 	def react(self):
 		while self.status:
@@ -388,6 +424,8 @@ class connection:
 		self.log("Starting")
 		
 		self.start_connection()
+
+
 
 
 
